@@ -73,14 +73,14 @@ int tomar_trabajo(void)
 /**********************************************/
 /* Display the Board Image                    */
 /**********************************************/
-void Display(void)
+void Display(structHilo *s)
 {
     int  y, bit;
 
     printf("N= %d\n", SIZE);
     for (y=0; y<SIZE; y++) {
         for (bit=TOPBIT; bit; bit>>=1)
-            printf("%s ", (BOARD[y] & bit)? "Q": "-");
+            printf("%s ", (s->BOARD[y] & bit)? "Q": "-");
         printf("\n");
     }
     printf("\n");
@@ -244,14 +244,9 @@ void *worker(void *arg)
 /**********************************************/
 /* Ejecutar una fase                          */
 /**********************************************/
-void ejecutar_fase(int phase, int start_bound, int end_bound,
-                   long int *total_count8, long int *total_count4, long int *total_count2)
+void ejecutar_fase(long int *total_count8, long int *total_count4, long int *total_count2)
 {
     pthread_t threads[MAXSIZE];
-
-    PHASE = phase;
-    NEXT_BOUND = start_bound;
-    END_BOUND = end_bound;
 
     for (int i = 0; i < T; i++) {
         THREAD_COUNT8[i] = 0;
@@ -291,10 +286,21 @@ void NQueens(void)
 
     /* 0:000000001 */
     /* 1:011111100 */
-    ejecutar_fase(1, 2, SIZEE - 1, &COUNT8, &COUNT4, &COUNT2);
+
+    
+    PHASE = 1;
+    NEXT_BOUND = 2;
+    END_BOUND = SIZEE - 1;
+
+    ejecutar_fase(&COUNT8, &COUNT4, &COUNT2);
+
+
+    PHASE = 2;
+    NEXT_BOUND = 1;
+    END_BOUND = (SIZE - 2) / 2;
 
     /* 0:000001110 */
-    ejecutar_fase(2, 1, (SIZE - 2) / 2, &COUNT8, &COUNT4, &COUNT2);
+    ejecutar_fase(&COUNT8, &COUNT4, &COUNT2);
 
     UNIQUE = COUNT8     + COUNT4     + COUNT2;
     TOTAL  = COUNT8 * 8 + COUNT4 * 4 + COUNT2 * 2;
@@ -321,7 +327,6 @@ int main(int argc, char *argv[])
     }
 
     T = (argc > 2) ? atoi(argv[2]) : 16;
-    if (T < 1) T = 1;
     if (T > MAXSIZE) T = MAXSIZE;
 
     tIni = dwalltime();
