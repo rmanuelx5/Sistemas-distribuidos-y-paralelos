@@ -1,0 +1,21 @@
+Resumen local rank 0: COUNT8=20618436 COUNT4=472 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 1: COUNT8=20543436 COUNT4=766 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 2: COUNT8=17264302 COUNT4=800 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 3: COUNT8=11970915 COUNT4=714 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 4: COUNT8=6435034 COUNT4=756 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 5: COUNT8=2750743 COUNT4=653 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 6: COUNT8=1094191 COUNT4=261 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 7: COUNT8=786002 COUNT4=104 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 8: COUNT8=597894 COUNT4=0 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 9: COUNT8=489785 COUNT4=0 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 10: COUNT8=312699 COUNT4=0 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 11: COUNT8=221841 COUNT4=0 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 12: COUNT8=108215 COUNT4=0 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 13: COUNT8=51247 COUNT4=0 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 14: COUNT8=14325 COUNT4=0 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 15: COUNT8=0 COUNT4=0 COUNT2=0
+Numero de resultados: 666090624 - Unicas: 83263591
+Procesos MPI: 16
+pthreads por proceso MPI: 1
+Total aproximado de workers: 16
+Tiempo Total: 86.292254 segundos

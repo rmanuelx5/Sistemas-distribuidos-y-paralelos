@@ -1,0 +1,9 @@
+Resumen local rank 0: COUNT8=43038222 COUNT4=1238 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 1: COUNT8=31051878 COUNT4=1514 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 2: COUNT8=8766272 COUNT4=1409 COUNT2=0
+Resumen recibido por MPI_Recv desde rank 3: COUNT8=402693 COUNT4=365 COUNT2=0
+Numero de resultados: 666090624 - Unicas: 83263591
+Procesos MPI: 4
+pthreads por proceso MPI: 1
+Total aproximado de workers: 4
+Tiempo Total: 177.492114 segundos

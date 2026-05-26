@@ -244,7 +244,7 @@ void *worker(void *arg)
 /**********************************************/
 /* Ejecutar una fase                          */
 /**********************************************/
-void ejecutar_fase(long int *total_count8, long int *total_count4, long int *total_count2)
+void logica_hilos(long int *total_count8, long int *total_count4, long int *total_count2)
 {
     pthread_t threads[MAXSIZE];
 
@@ -292,7 +292,7 @@ void NQueens(void)
     NEXT_BOUND = 2;
     END_BOUND = SIZEE - 1;
 
-    ejecutar_fase(&COUNT8, &COUNT4, &COUNT2);
+    logica_hilos(&COUNT8, &COUNT4, &COUNT2);
 
 
     PHASE = 2;
@@ -300,7 +300,7 @@ void NQueens(void)
     END_BOUND = (SIZE - 2) / 2;
 
     /* 0:000001110 */
-    ejecutar_fase(&COUNT8, &COUNT4, &COUNT2);
+    logica_hilos(&COUNT8, &COUNT4, &COUNT2);
 
     UNIQUE = COUNT8     + COUNT4     + COUNT2;
     TOTAL  = COUNT8 * 8 + COUNT4 * 4 + COUNT2 * 2;
@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    T = (argc > 2) ? atoi(argv[2]) : 16;
+    T = (argc > 2) ? atoi(argv[2]) : 1;
     if (T > MAXSIZE) T = MAXSIZE;
 
     tIni = dwalltime();

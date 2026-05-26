@@ -1,0 +1,27 @@
+argv[0] = ./miAplicacion
+argv[1] = 18
+argv[2] = 8
+argv[0] = ./miAplicacion
+argv[1] = 18
+argv[2] = 8
+Rank 1, Thread 0: Tiempo = 33.153152 segundos
+Rank 1, Thread 1: Tiempo = 16.167139 segundos
+Rank 1, Thread 2: Tiempo = 5.058553 segundos
+Rank 1, Thread 3: Tiempo = 0.681208 segundos
+Rank 1, Thread 4: Tiempo = 0.000001 segundos
+Rank 1, Thread 5: Tiempo = 0.000002 segundos
+Rank 1, Thread 6: Tiempo = 0.000002 segundos
+Rank 1, Thread 7: Tiempo = 0.000002 segundos
+Rank 0, Thread 0: Tiempo = 80.491978 segundos
+Rank 0, Thread 1: Tiempo = 82.343128 segundos
+Rank 0, Thread 2: Tiempo = 73.162334 segundos
+Rank 0, Thread 3: Tiempo = 54.718446 segundos
+Rank 0, Thread 4: Tiempo = 0.000001 segundos
+Rank 0, Thread 5: Tiempo = 0.000002 segundos
+Rank 0, Thread 6: Tiempo = 0.000001 segundos
+Rank 0, Thread 7: Tiempo = 0.000001 segundos
+Numero de resultados: 666090624 - Unicas: 83263591
+Procesos MPI: 2
+pthreads por proceso MPI: 8
+Total aproximado de workers: 16
+Tiempo Total: 86.266146 segundos

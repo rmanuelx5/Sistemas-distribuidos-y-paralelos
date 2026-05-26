@@ -1,14 +1,3 @@
-/**************************************************************************/
-/* N-Queens Solutions ver3.1 - MPI + pthreads                              */
-/* Base: Takaken July/2003                                                  */
-/*                                                                          */
-/* Cambio pedido: agregar MPI de forma visible.                             */
-/* - MPI_Scatter reparte explicitamente los BOUND entre procesos.           */
-/* - pthreads reparte el trabajo dentro de cada proceso MPI.                */
-/* - cada pthread recibe solamente su id como argumento.                    */
-/* - MPI_Send/MPI_Recv hacen pasaje de mensajes con resumen local.          */
-/* - MPI_Reduce junta los contadores locales en el proceso 0.               */
-/**************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -24,26 +13,30 @@ double dwalltime();
 int SIZE, SIZEE;
 int MASK, TOPBIT;
 
-/* pthreads por cada proceso MPI */
+// pthreads por cada proceso MPI
 int T;
 
-/* Datos MPI */
+// datos MPI 
 int MPI_RANK;
 int MPI_SIZE;
 
-/* Trabajo recibido por MPI_Scatter y compartido entre pthreads locales */
+// trabajo recibido por cada proceso
 int *WORK_BOUNDS = NULL;
 int WORK_COUNT = 0;
 int WORK_INDEX = 0;
 int PHASE;
+//exclusion mutua para tomar trabajo 
 pthread_mutex_t mutex;
 
-/* Contadores locales de cada pthread del proceso MPI actual */
+// contadores locales
 long int THREAD_COUNT8[MAXSIZE];
 long int THREAD_COUNT4[MAXSIZE];
 long int THREAD_COUNT2[MAXSIZE];
 
-/* Variables privadas de cada hilo */
+//para que cada hilo guarde su tiempo de ejecucion
+double tiempo_hilos[MAXSIZE];
+
+// variables privadas de cada hilo 
 typedef struct {
     int BOARD[MAXSIZE];
     int *BOARDE;
@@ -59,13 +52,6 @@ typedef struct {
     long int COUNT2;
 } structHilo;
 
-/**********************************************/
-/* Tomar siguiente trabajo local              */
-/*                                            */
-/* El arreglo WORK_BOUNDS llega por MPI_Scatter. */
-/* Los pthreads del proceso actual se reparten */
-/* ese arreglo usando mutex.                  */
-/**********************************************/
 int tomar_trabajo(void)
 {
     int bound;
@@ -84,9 +70,7 @@ int tomar_trabajo(void)
     return bound;
 }
 
-/**********************************************/
-/* Display the Board Image                    */
-/**********************************************/
+//mostrar tablero en pantalla
 void Display(structHilo *s)
 {
     int y, bit;
@@ -100,9 +84,7 @@ void Display(structHilo *s)
     printf("\n");
 }
 
-/**********************************************/
-/* Check Unique Solutions                     */
-/**********************************************/
+//verifica simetrias
 void Check(structHilo *s)
 {
     int *own, *you, bit, ptn;
@@ -205,12 +187,13 @@ void Backtrack1(int y, int left, int down, int right, structHilo *s)
     }
 }
 
-/**********************************************/
-/* Worker pthread: recibe solamente su id     */
-/**********************************************/
+//funcion de cada pthread
 void *worker(void *arg)
 {
-    int id = (int)(intptr_t)arg;
+    int id = *(int *)arg;
+
+    tiempo_hilos[id] = dwalltime();
+
     int bound = tomar_trabajo();
 
     while (bound != -1) {
@@ -247,20 +230,13 @@ void *worker(void *arg)
 
         bound = tomar_trabajo();
     }
+    
+    tiempo_hilos[id] = dwalltime() - tiempo_hilos[id];
 
     return NULL;
 }
 
-/**********************************************/
-/* Configurar fase MPI con Scatter            */
-/*                                            */
-/* Se usa solo MPI_Scatter, no MPI_Scatterv. */
-/* Como MPI_Scatter exige que todos reciban   */
-/* la misma cantidad, el rank 0 arma una      */
-/* matriz plana de MPI_SIZE * WORK_COUNT.     */
-/* Los espacios sobrantes se rellenan con -1. */
-/**********************************************/
-void configurar_fase_mpi_scatter(int phase, int inicio, int fin)
+void division_trabajo(int phase, int inicio, int fin)
 {
     int total_trabajos = 0;
     int *todos_los_bounds = NULL;
@@ -277,25 +253,27 @@ void configurar_fase_mpi_scatter(int phase, int inicio, int fin)
         if (fin >= inicio) {
             total_trabajos = fin - inicio + 1;
         }
-
-        /* Cantidad fija que recibira cada proceso.
-           Es ceil(total_trabajos / MPI_SIZE). */
-        WORK_COUNT = (total_trabajos + MPI_SIZE - 1) / MPI_SIZE;
+        //variable para mandar a cada proceso la cantidad de trabajos que le toca hacer
+        WORK_COUNT = (total_trabajos + MPI_SIZE - 1) / MPI_SIZE; //la division de trabajos entre procesos, redondeando hacia arriba  
     }
 
-    /* Todos deben saber cuantos enteros van a recibir por MPI_Scatter. */
+    //se manda a cada proceso la cantidad de trabajo 
     MPI_Bcast(&WORK_COUNT, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
+    //se reserva espacio de manera dinamica segun la cantidad recibida 
     if (WORK_COUNT > 0) {
         WORK_BOUNDS = malloc(sizeof(int) * WORK_COUNT);
+
+        //mensaje de error por si no se pudo reservar memoria
         if (WORK_BOUNDS == NULL) {
             fprintf(stderr, "Rank %d: error reservando WORK_BOUNDS\n", MPI_RANK);
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
     }
-
+    //solo root prepara el arreglo con los bounds y luego se reparte con scatter
     if (MPI_RANK == 0 && WORK_COUNT > 0) {
-        int total_celdas = WORK_COUNT * MPI_SIZE;
+        int total_celdas = WORK_COUNT * MPI_SIZE; //total celdas = trabajo + padding si hubiese (marcado con -1)
+
 
         todos_los_bounds = malloc(sizeof(int) * total_celdas);
         if (todos_los_bounds == NULL) {
@@ -303,37 +281,33 @@ void configurar_fase_mpi_scatter(int phase, int inicio, int fin)
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
 
-        /* Inicializo con -1 para marcar trabajos invalidos/relleno. */
+        //padding con -1 para los procesos que no reciban trabajo 
         for (int i = 0; i < total_celdas; i++) {
             todos_los_bounds[i] = -1;
         }
 
-        /* Reparto por bloques: cada rank recibe WORK_COUNT posiciones.
-           Ejemplo: si hay 10 trabajos y 4 ranks, WORK_COUNT=3.
-           El buffer queda: rank0=[0,1,2], rank1=[3,4,5],
-                            rank2=[6,7,8], rank3=[9,-1,-1]. */
+        //llenar el arreglo con los bounds reales a repartir
         for (int i = 0; i < total_trabajos; i++) {
             todos_los_bounds[i] = inicio + i;
         }
     }
 
+    //scatter envia a cada proceso su parte
+    //MPI_Scatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm);
     if (WORK_COUNT > 0) {
-        MPI_Scatter(todos_los_bounds, WORK_COUNT, MPI_INT,
-                    WORK_BOUNDS, WORK_COUNT, MPI_INT,
-                    0, MPI_COMM_WORLD);
+        MPI_Scatter(todos_los_bounds, WORK_COUNT, MPI_INT, WORK_BOUNDS, WORK_COUNT, MPI_INT, 0, MPI_COMM_WORLD);
     }
 
+    //root libera el arreglo temporal 
     if (MPI_RANK == 0) {
         free(todos_los_bounds);
     }
 }
 
-/**********************************************/
-/* Ejecutar una fase con pthreads             */
-/**********************************************/
-void ejecutar_fase(long int *local_count8, long int *local_count4, long int *local_count2)
+    
+void logica_hilos(long int *local_count8, long int *local_count4, long int *local_count2)
 {
-    pthread_t threads[MAXSIZE];
+    pthread_t threads[T];
 
     for (int i = 0; i < T; i++) {
         THREAD_COUNT8[i] = 0;
@@ -343,8 +317,10 @@ void ejecutar_fase(long int *local_count8, long int *local_count4, long int *loc
 
     pthread_mutex_init(&mutex, NULL);
 
-    for (int i = 0; i < T; i++) {
-        pthread_create(&threads[i], NULL, worker, (void *)(intptr_t)i);
+    int threads_ids[T];    
+    for(int i=0;i<T;i++){
+        threads_ids[i]=i;
+        pthread_create(&threads[i],NULL, &worker,(void*)&threads_ids[i]);
     }
 
     for (int i = 0; i < T; i++) {
@@ -357,42 +333,6 @@ void ejecutar_fase(long int *local_count8, long int *local_count4, long int *loc
     pthread_mutex_destroy(&mutex);
 }
 
-
-/**********************************************/
-/* Pasaje de mensajes MPI                     */
-/*                                            */
-/* No reemplaza a MPI_Reduce: se agrega para  */
-/* que el programa tenga comunicacion directa */
-/* punto a punto entre procesos.              */
-/**********************************************/
-void enviar_resumen_local_por_mensaje(long int local_count8,
-                                      long int local_count4,
-                                      long int local_count2)
-{
-    long int resumen[4];
-
-    resumen[0] = MPI_RANK;
-    resumen[1] = local_count8;
-    resumen[2] = local_count4;
-    resumen[3] = local_count2;
-
-    if (MPI_RANK == 0) {
-        printf("Resumen local rank 0: COUNT8=%ld COUNT4=%ld COUNT2=%ld\n",
-               local_count8, local_count4, local_count2);
-
-        for (int origen = 1; origen < MPI_SIZE; origen++) {
-            long int recibido[4];
-
-            MPI_Recv(recibido, 4, MPI_LONG, origen, 100,
-                     MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-            printf("Resumen recibido por MPI_Recv desde rank %ld: COUNT8=%ld COUNT4=%ld COUNT2=%ld\n",
-                   recibido[0], recibido[1], recibido[2], recibido[3]);
-        }
-    } else {
-        MPI_Send(resumen, 4, MPI_LONG, 0, 100, MPI_COMM_WORLD);
-    }
-}
 
 /**********************************************/
 /* Search of N-Queens                         */
@@ -413,21 +353,41 @@ void NQueens(void)
     TOPBIT = 1 << SIZEE;
     MASK   = (1 << SIZE) - 1;
 
-    /* Fase 1 del algoritmo original: BOUND1 = 2 .. SIZEE-1 */
-    configurar_fase_mpi_scatter(1, 2, SIZEE - 1);
-    ejecutar_fase(&LOCAL_COUNT8, &LOCAL_COUNT4, &LOCAL_COUNT2);
+    //
+    division_trabajo(1, 2, SIZEE - 1);
+    logica_hilos(&LOCAL_COUNT8, &LOCAL_COUNT4, &LOCAL_COUNT2);
 
     /* Fase 2 del algoritmo original: BOUND1 = 1 .. (SIZE-2)/2 */
-    configurar_fase_mpi_scatter(2, 1, (SIZE - 2) / 2);
-    ejecutar_fase(&LOCAL_COUNT8, &LOCAL_COUNT4, &LOCAL_COUNT2);
-
-    /* MPI_Send/MPI_Recv: pasaje de mensajes punto a punto con resumen local. */
-    enviar_resumen_local_por_mensaje(LOCAL_COUNT8, LOCAL_COUNT4, LOCAL_COUNT2);
+    division_trabajo(2, 1, (SIZE - 2) / 2);
+    logica_hilos(&LOCAL_COUNT8, &LOCAL_COUNT4, &LOCAL_COUNT2);
 
     /* MPI_Reduce: junta los resultados parciales de todos los procesos. */
     MPI_Reduce(&LOCAL_COUNT8, &GLOBAL_COUNT8, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&LOCAL_COUNT4, &GLOBAL_COUNT4, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&LOCAL_COUNT2, &GLOBAL_COUNT2, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    double sumaLocal = 0.0;
+    double sumaGlobal = 0.0;
+    int totalThreads = MPI_SIZE * T;
+
+    for (int r = 0; r < MPI_SIZE; r++) {
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        if (MPI_RANK == r) {
+            for (int i = 0; i < T; i++) {
+                sumaLocal += tiempo_hilos[i];
+
+                printf("Rank %d, Thread %d: Tiempo = %f segundos\n", MPI_RANK, i, tiempo_hilos[i]);
+            }
+        }
+    }
+
+    MPI_Reduce(&sumaLocal, &sumaGlobal, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    if (MPI_RANK == 0) {
+        printf("Tiempo promedio total por hilo = %f segundos\n", sumaGlobal / totalThreads);
+    }
+    
 
     if (MPI_RANK == 0) {
         UNIQUE = GLOBAL_COUNT8 + GLOBAL_COUNT4 + GLOBAL_COUNT2;
@@ -437,66 +397,70 @@ void NQueens(void)
     }
 }
 
-/**********************************************/
-/* MAIN                                       */
-/**********************************************/
+
 int main(int argc, char *argv[])
 {
     double tIni, tFin;
-    int parametros_ok = 1;
+    int error = 1; //flag para indicar si los parametros son validos
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &MPI_RANK);
     MPI_Comm_size(MPI_COMM_WORLD, &MPI_SIZE);
 
-    /* MPI: el proceso 0 valida parametros y los distribuye al resto con Bcast. */
+    // El proceso root valida parametros y los distribuye con broadcast
     if (MPI_RANK == 0) {
         if (argc < 2) {
             fprintf(stderr, "Uso: %s N [pthreads_por_proceso]\n", argv[0]);
-            parametros_ok = 0;
+            error = 0;
         } else {
             SIZE = atoi(argv[1]);
             T = (argc > 2) ? atoi(argv[2]) : 1;
 
             if (SIZE < MINSIZE || SIZE > MAXSIZE) {
                 fprintf(stderr, "N debe estar entre %d y %d\n", MINSIZE, MAXSIZE);
-                parametros_ok = 0;
+                error = 0;
             }
 
             if (T < 1) T = 1;
             if (T > MAXSIZE) T = MAXSIZE;
         }
     }
-
-    MPI_Bcast(&parametros_ok, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    if (!parametros_ok) {
+    
+    MPI_Bcast(&error, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    if (!error) {
         MPI_Finalize();
         return 1;
     }
 
-    /* MPI: todos los procesos reciben los parametros ya validados. */
+    // Todos los procesos reciben los parametros ya validados 
     MPI_Bcast(&SIZE, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&T, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     MPI_Barrier(MPI_COMM_WORLD);
-    tIni = MPI_Wtime();
+
+    // Se mide solo el tiempo de computo
+    tIni = dwalltime();
 
     NQueens();
 
     MPI_Barrier(MPI_COMM_WORLD);
-    tFin = MPI_Wtime();
+    
+    tFin = dwalltime();
 
+    // Imprime configuracion, resultados y tiempos
     if (MPI_RANK == 0) {
+        printf("Tamaño del tablero: %d\n", SIZE);
         printf("Procesos MPI: %d\n", MPI_SIZE);
         printf("pthreads por proceso MPI: %d\n", T);
-        printf("Total aproximado de workers: %d\n", MPI_SIZE * T);
+        printf("Total de workers: %d\n", MPI_SIZE * T);
         printf("Tiempo Total: %f segundos\n", tFin - tIni);
     }
 
-    if (WORK_BOUNDS != NULL) {
-        free(WORK_BOUNDS);
-        WORK_BOUNDS = NULL;
-    }
+    // limpiar recursos
+    // if (WORK_BOUNDS != NULL) {
+    //     free(WORK_BOUNDS);
+    //     WORK_BOUNDS = NULL;
+    // }
 
     MPI_Finalize();
     return 0;
