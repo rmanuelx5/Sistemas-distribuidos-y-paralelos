@@ -1,0 +1,23 @@
+Rank 0, Thread 0: Tiempo = 0.301861 segundos
+Rank 0, Thread 1: Tiempo = 0.298034 segundos
+Rank 0, Thread 2: Tiempo = 0.229178 segundos
+Rank 0, Thread 3: Tiempo = 0.000001 segundos
+Rank 0, Thread 4: Tiempo = 0.000002 segundos
+Rank 0, Thread 5: Tiempo = 0.000002 segundos
+Rank 0, Thread 6: Tiempo = 0.000002 segundos
+Rank 0, Thread 7: Tiempo = 0.000002 segundos
+Tiempo promedio total por hilo = 0.064969 segundos
+Numero de resultados: 2279184 - Unicas: 285053
+Rank 1, Thread 0: Tiempo = 0.138401 segundos
+Rank 1, Thread 1: Tiempo = 0.059029 segundos
+Rank 1, Thread 2: Tiempo = 0.012990 segundos
+Rank 1, Thread 3: Tiempo = 0.000002 segundos
+Rank 1, Thread 4: Tiempo = 0.000002 segundos
+Rank 1, Thread 5: Tiempo = 0.000002 segundos
+Rank 1, Thread 6: Tiempo = 0.000001 segundos
+Rank 1, Thread 7: Tiempo = 0.000001 segundos
+Tamaño del tablero: 15
+Procesos MPI: 2
+pthreads por proceso MPI: 8
+Total de workers: 16
+Tiempo Total: 0.321890 segundos

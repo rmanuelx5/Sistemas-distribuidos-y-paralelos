@@ -1,0 +1,6 @@
+Resumen local rank 0: COUNT8=83259065 COUNT4=4526 COUNT2=0
+Numero de resultados: 666090624 - Unicas: 83263591
+Procesos MPI: 1
+pthreads por proceso MPI: 1
+Total aproximado de workers: 1
+Tiempo Total: 377.679282 segundos

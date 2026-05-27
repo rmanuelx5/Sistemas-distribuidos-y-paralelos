@@ -1,0 +1,15 @@
+Rank 0, Thread 0: Tiempo = 80.392490 segundos
+Rank 0, Thread 1: Tiempo = 82.288833 segundos
+Rank 0, Thread 2: Tiempo = 73.073978 segundos
+Rank 0, Thread 3: Tiempo = 54.659861 segundos
+Tiempo promedio total por hilo = 43.183278 segundos
+Numero de resultados: 666090624 - Unicas: 83263591
+Tamaño del tablero: 18
+Procesos MPI: 2
+pthreads por proceso MPI: 4
+Total de workers: 8
+Tiempo Total: 88.990710 segundos
+Rank 1, Thread 0: Tiempo = 33.147997 segundos
+Rank 1, Thread 1: Tiempo = 16.163589 segundos
+Rank 1, Thread 2: Tiempo = 5.058043 segundos
+Rank 1, Thread 3: Tiempo = 0.681430 segundos

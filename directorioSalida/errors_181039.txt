@@ -1,0 +1,1 @@
+slurmstepd: error: *** JOB 181039 ON nodo3 CANCELLED AT 2026-05-26T16:20:32 DUE TO TIME LIMIT ***

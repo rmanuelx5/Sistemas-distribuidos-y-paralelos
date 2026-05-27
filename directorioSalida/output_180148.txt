@@ -1,0 +1,21 @@
+Rank 1, Thread 0: Tiempo = 0.000083 segundos
+Rank 3, Thread 0: Tiempo = 0.000010 segundos
+Rank 5, Thread 0: Tiempo = 0.000003 segundos
+Rank 13, Thread 0: Tiempo = 0.000001 segundos
+Rank 11, Thread 0: Tiempo = 0.000003 segundos
+Rank 6, Thread 0: Tiempo = 0.000003 segundos
+Rank 7, Thread 0: Tiempo = 0.000004 segundos
+Rank 4, Thread 0: Tiempo = 0.000003 segundos
+Rank 2, Thread 0: Tiempo = 0.000949 segundos
+Rank 9, Thread 0: Tiempo = 0.003110 segundos
+Rank 0, Thread 0: Tiempo = 0.001157 segundos
+Numero de resultados: 724 - Unicas: 92
+Procesos MPI: 16
+pthreads por proceso MPI: 1
+Total aproximado de workers: 16
+Tiempo Total: 0.012235 segundos
+Rank 12, Thread 0: Tiempo = 0.000003 segundos
+Rank 14, Thread 0: Tiempo = 0.000003 segundos
+Rank 15, Thread 0: Tiempo = 0.000003 segundos
+Rank 10, Thread 0: Tiempo = 0.000002 segundos
+Rank 8, Thread 0: Tiempo = 0.000003 segundos

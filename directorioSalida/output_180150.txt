@@ -1,0 +1,53 @@
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+argv[0] = ./miAplicacion
+argv[1] = 10
+Rank 2, Thread 0: Tiempo = 0.000034 segundos
+Rank 3, Thread 0: Tiempo = 0.000010 segundos
+Rank 5, Thread 0: Tiempo = 0.000002 segundos
+Rank 9, Thread 0: Tiempo = 0.000003 segundos
+Rank 10, Thread 0: Tiempo = 0.000003 segundos
+Rank 11, Thread 0: Tiempo = 0.000002 segundos
+Rank 1, Thread 0: Tiempo = 0.000082 segundos
+Rank 7, Thread 0: Tiempo = 0.000001 segundos
+Rank 6, Thread 0: Tiempo = 0.000003 segundos
+Rank 4, Thread 0: Tiempo = 0.000003 segundos
+Rank 13, Thread 0: Tiempo = 0.000003 segundos
+Rank 0, Thread 0: Tiempo = 0.008366 segundos
+Numero de resultados: 724 - Unicas: 92
+Procesos MPI: 16
+pthreads por proceso MPI: 1
+Total aproximado de workers: 16
+Tiempo Total: 0.009605 segundos
+Rank 8, Thread 0: Tiempo = 0.000002 segundos
+Rank 15, Thread 0: Tiempo = 0.000001 segundos
+Rank 12, Thread 0: Tiempo = 0.000003 segundos
+Rank 14, Thread 0: Tiempo = 0.000002 segundos
