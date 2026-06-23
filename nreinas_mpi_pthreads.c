@@ -253,22 +253,17 @@ void division_trabajo(int phase, int inicio, int fin)
         if (fin >= inicio) {
             total_trabajos = fin - inicio + 1;
         }
+        //cada nodo sabe
         //variable para mandar a cada proceso la cantidad de trabajos que le toca hacer
         WORK_COUNT = (total_trabajos + MPI_SIZE - 1) / MPI_SIZE; //la division de trabajos entre procesos, redondeando hacia arriba  
     }
 
-    //se manda a cada proceso la cantidad de trabajo 
+    //se manda a cada proceso la cantidad de trabajo -----
     MPI_Bcast(&WORK_COUNT, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     //se reserva espacio de manera dinamica segun la cantidad recibida 
     if (WORK_COUNT > 0) {
         WORK_BOUNDS = malloc(sizeof(int) * WORK_COUNT);
-
-        //mensaje de error por si no se pudo reservar memoria
-        if (WORK_BOUNDS == NULL) {
-            fprintf(stderr, "Rank %d: error reservando WORK_BOUNDS\n", MPI_RANK);
-            MPI_Abort(MPI_COMM_WORLD, 1);
-        }
     }
     //solo root prepara el arreglo con los bounds y luego se reparte con scatter
     if (MPI_RANK == 0 && WORK_COUNT > 0) {
@@ -276,10 +271,6 @@ void division_trabajo(int phase, int inicio, int fin)
 
 
         todos_los_bounds = malloc(sizeof(int) * total_celdas);
-        if (todos_los_bounds == NULL) {
-            fprintf(stderr, "Error reservando memoria para MPI_Scatter\n");
-            MPI_Abort(MPI_COMM_WORLD, 1);
-        }
 
         //padding con -1 para los procesos que no reciban trabajo 
         for (int i = 0; i < total_celdas; i++) {
@@ -353,7 +344,9 @@ void NQueens(void)
     TOPBIT = 1 << SIZEE;
     MASK   = (1 << SIZE) - 1;
 
-    //
+
+        
+    //hacer un solo dividir trabajo 
     division_trabajo(1, 2, SIZEE - 1);
     logica_hilos(&LOCAL_COUNT8, &LOCAL_COUNT4, &LOCAL_COUNT2);
 
@@ -361,10 +354,20 @@ void NQueens(void)
     division_trabajo(2, 1, (SIZE - 2) / 2);
     logica_hilos(&LOCAL_COUNT8, &LOCAL_COUNT4, &LOCAL_COUNT2);
 
-    /* MPI_Reduce: junta los resultados parciales de todos los procesos. */
-    MPI_Reduce(&LOCAL_COUNT8, &GLOBAL_COUNT8, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&LOCAL_COUNT4, &GLOBAL_COUNT4, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
-    MPI_Reduce(&LOCAL_COUNT2, &GLOBAL_COUNT2, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+    //un solo reduce con un arreglo
+
+    long int local_counts[3] = {LOCAL_COUNT8, LOCAL_COUNT4, LOCAL_COUNT2};
+    long int global_counts[3] = {GLOBAL_COUNT8, GLOBAL_COUNT4, GLOBAL_COUNT2};
+
+    mpi_Reduce(local_counts, global_counts, 3, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD); //Utilizamos arreglos para reducir las tres cuentas en una sola llamada a MPI_Reduce
+    
+    // /* MPI_Reduce: junta los resultados parciales de todos los procesos. */
+    // MPI_Reduce(&LOCAL_COUNT8, &GLOBAL_COUNT8, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+    // MPI_Reduce(&LOCAL_COUNT4, &GLOBAL_COUNT4, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+    // MPI_Reduce(&LOCAL_COUNT2, &GLOBAL_COUNT2, 1, MPI_LONG, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    //tiempos hasta aca
+
 
     double sumaLocal = 0.0;
     double sumaGlobal = 0.0;
@@ -388,14 +391,14 @@ void NQueens(void)
         printf("Tiempo promedio total por hilo = %f segundos\n", sumaGlobal / totalThreads);
     }
     
-
+//subir a tiempo
     if (MPI_RANK == 0) {
         UNIQUE = GLOBAL_COUNT8 + GLOBAL_COUNT4 + GLOBAL_COUNT2;
         TOTAL  = GLOBAL_COUNT8 * 8 + GLOBAL_COUNT4 * 4 + GLOBAL_COUNT2 * 2;
 
         printf("Numero de resultados: %lu - Unicas: %lu\n", TOTAL, UNIQUE);
     }
-}
+}//print no se mide
 
 
 int main(int argc, char *argv[])
@@ -432,9 +435,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Todos los procesos reciben los parametros ya validados 
-    MPI_Bcast(&SIZE, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&T, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//  //no hace falta 
+//     // Todos los procesos reciben los parametros ya validados 
+//     MPI_Bcast(&SIZE, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//     MPI_Bcast(&T, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     MPI_Barrier(MPI_COMM_WORLD);
 
